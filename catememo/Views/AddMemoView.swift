@@ -2,26 +2,19 @@ import SwiftUI
 
 struct AddMemoView: View {
     @ObservedObject var viewModel: MemoViewModel
-    @State private var memoText: String
-    @State private var memo: LocationMemo
-    @State private var selectedCategoryId: UUID?
     @Environment(\.presentationMode) var presentationMode
+    @State private var memoText: String = ""
+    @State private var selectedCategoryId: UUID?
     @State private var showAlert = false
-
-    init(viewModel: MemoViewModel, memo: LocationMemo?) {
-        self.viewModel = viewModel
-        _memo = State(initialValue: memo ?? LocationMemo(text: ""))
-        _memoText = State(initialValue: memo?.text ?? "")
-        _selectedCategoryId = State(initialValue: memo?.categoryId)
-    }
+    var memo: Memo?
 
     var body: some View {
-        NavigationView {
-            VStack {
+        NavigationView{
+            VStack{
                 Form {
                     Section(header: Text("Memo")) {
                         TextEditor(text: $memoText)
-                            .frame(height: 200)
+                            .frame(height: 400)
                     }
                     
                     Section(header: Text("Category")) {
@@ -29,14 +22,6 @@ struct AddMemoView: View {
                             Text("None").tag(UUID?.none)
                             ForEach(viewModel.categories) { category in
                                 Text(category.name).tag(category.id as UUID?)
-                            }
-                        }
-                    }
-                    
-                    if let location = memo.location {
-                        Section(header: Text("Location")) {
-                            if let address = viewModel.currentAddress {
-                                Text("Address: \(address)")
                             }
                         }
                     }
@@ -73,20 +58,38 @@ struct AddMemoView: View {
                 }
                 .padding()
             }
-            .navigationBarTitle(memo.id == UUID() ? "Add Memo" : "Edit Memo", displayMode: .inline)
-            .alert(isPresented: $showAlert) {
-                Alert(title: Text("Empty Memo"), message: Text("Please enter some text before saving."), dismissButton: .default(Text("OK")))
+        }
+        .navigationTitle(memo != nil ? "Edit Memo" : "Add Memo")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button("Cancel") {
+                    presentationMode.wrappedValue.dismiss()
+                }
+            }
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button("Save") {
+                    saveMemo()
+                }
+                .disabled(memoText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            }
+        }
+        .onAppear {
+            if let memo = memo {
+                memoText = memo.text
+                selectedCategoryId = memo.categoryId
             }
         }
     }
 
     private func saveMemo() {
-        memo.text = memoText
-        memo.categoryId = selectedCategoryId
-        if memo.location == nil {
-            memo.location = viewModel.currentLocation?.coordinate
-        }
-        viewModel.saveMemo(memo)
+        let newMemo = Memo(
+            id: memo?.id ?? UUID(),
+            text: memoText,
+            categoryId: selectedCategoryId,
+            date: memo?.date ?? Date()
+        )
+        viewModel.saveMemo(newMemo)
         presentationMode.wrappedValue.dismiss()
     }
 }
