@@ -1,37 +1,14 @@
 import SwiftUI
-import CoreLocation
 
-class MemoViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
-    @Published var memos: [LocationMemo] = []
+class MemoViewModel: ObservableObject {
+    @Published var memos: [Memo] = []
     @Published var categories: [Category] = []
     @Published var isEditingMemo = false
     @Published var selectedCategoryId: UUID?
-    private var locationManager = CLLocationManager()
-    @Published var currentLocation: CLLocation?
-    private let geocoder = CLGeocoder()
-    @Published var currentAddress: String?
 
-    override init() {
-        super.init()
-        locationManager.delegate = self
+    init() {
         loadMemos()
         loadCategories()
-    }
-
-    func requestLocation() {
-        locationManager.requestWhenInUseAuthorization()
-        locationManager.startUpdatingLocation()
-    }
-
-    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        if let location = locations.last {
-            currentLocation = location
-            reverseGeocode(location: location)
-        }
-    }
-
-    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        print("Failed to get location: \(error.localizedDescription)")
     }
 
     func deleteMemo(at offsets: IndexSet) {
@@ -43,7 +20,7 @@ class MemoViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
         return text.components(separatedBy: .newlines).first ?? text
     }
 
-    func saveMemo(_ memo: LocationMemo) {
+    func saveMemo(_ memo: Memo) {
         let trimmedText = memo.text.trimmingCharacters(in: .whitespacesAndNewlines)
         if !trimmedText.isEmpty {
             if let index = memos.firstIndex(where: { $0.id == memo.id }) {
@@ -63,16 +40,23 @@ class MemoViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     func deleteCategory(_ category: Category) {
         categories.removeAll { $0.id == category.id }
         saveCategories()
-        
+
         for index in memos.indices {
             if memos[index].categoryId == category.id {
                 memos[index].categoryId = nil
             }
         }
         saveMemos()
-        
+
         if selectedCategoryId == category.id {
             selectedCategoryId = nil
+        }
+    }
+
+    func updateCategory(_ category: Category) {
+        if let index = categories.firstIndex(where: { $0.id == category.id }) {
+            categories[index] = category
+            saveCategories()
         }
     }
 
@@ -81,17 +65,10 @@ class MemoViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
             UserDefaults.standard.set(encoded, forKey: "savedMemos")
         }
     }
-    
-    func updateCategory(_ category: Category) {
-        if let index = categories.firstIndex(where: { $0.id == category.id }) {
-            categories[index] = category
-            saveCategories()
-        }
-    }
 
     private func loadMemos() {
         if let savedMemos = UserDefaults.standard.data(forKey: "savedMemos"),
-           let decodedMemos = try? JSONDecoder().decode([LocationMemo].self, from: savedMemos) {
+           let decodedMemos = try? JSONDecoder().decode([Memo].self, from: savedMemos) {
             memos = decodedMemos
         }
     }
@@ -105,21 +82,7 @@ class MemoViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     private func loadCategories() {
         if let savedCategories = UserDefaults.standard.data(forKey: "savedCategories"),
            let decodedCategories = try? JSONDecoder().decode([Category].self, from: savedCategories) {
-            categories = decodedCategories
-        }
-    }
-
-    private func reverseGeocode(location: CLLocation) {
-        geocoder.reverseGeocodeLocation(location) { [weak self] placemarks, error in
-            if let error = error {
-                print("Failed to reverse geocode location: \(error.localizedDescription)")
-                return
+                categories = decodedCategories
             }
-            if let placemark = placemarks?.first {
-                self?.currentAddress = [placemark.administrativeArea, placemark.locality, placemark.subLocality]
-                    .compactMap { $0 }
-                    .joined(separator: " ")
-            }
-        }
     }
 }
