@@ -103,13 +103,35 @@ struct ContentView: View {
     }
 
     private func moveMemo(from source: IndexSet, to destination: Int) {
-        // メモの並べ替え処理
-        viewModel.memos.move(fromOffsets: source, toOffset: destination)
-        viewModel.saveMemos()
+        if viewModel.selectedCategoryId == nil {
+            // If category is not selected, operate viewModel.memos directly
+            viewModel.memos.move(fromOffsets: source, toOffset: destination)
+        } else {
+            // Operate filtered memos
+            var filtered = filteredMemos
+            filtered.move(fromOffsets: source, toOffset: destination)
+            
+            // Update viewModel.memos
+            var newMemos: [Memo] = []
+            var filteredIndex = 0
+
+            for memo in viewModel.memos {
+                if memo.categoryId == viewModel.selectedCategoryId {
+                    // Add orders after sorting in Memos of selected category
+                    newMemos.append(filtered[filteredIndex])
+                    filteredIndex += 1
+                } else {
+                    // Add others
+                    newMemos.append(memo)
+                }
+            }
+            viewModel.memos = newMemos
+            viewModel.saveMemos()
+        }
     }
 }
 
-// add to show preview
+// Add to show preview
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         ContentView()
