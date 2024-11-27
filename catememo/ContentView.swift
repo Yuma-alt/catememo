@@ -12,7 +12,7 @@ struct ContentView: View {
             ZStack {
                 VStack {
                     categoryPicker
-                    
+
                     List {
                         ForEach(filteredMemos) { memo in
                             NavigationLink(
@@ -21,7 +21,7 @@ struct ContentView: View {
                                     memo: memo
                                 )
                             ) {
-                                MarkdownView(markdownText: viewModel.getFirstLine(of: memo.text))
+                                Text(viewModel.getFirstLine(of: memo.text))
                                     .lineLimit(1)
                                     .truncationMode(.tail)
                             }
@@ -30,9 +30,7 @@ struct ContentView: View {
                         .onMove(perform: moveMemo)
                     }
                     .toolbar {
-                        ToolbarItemGroup(placement: .navigationBarTrailing) {
-                            EditButton()
-                        }
+                        EditButton()
                     }
                 }
                 
@@ -74,15 +72,12 @@ struct ContentView: View {
                     .padding(.bottom, 16)
                 }
             }
-        }
-        .sheet(isPresented: $showingAddMemoView) {
-            AddMemoView(viewModel: viewModel, memo: nil)
-        }
-        .sheet(isPresented: $showingAddCategoryView) {
-            CategoryListView(viewModel: viewModel)
-        }
-        .onAppear {
-            viewModel.requestLocation()
+            .sheet(isPresented: $showingAddMemoView) {
+                AddMemoView(viewModel: viewModel, memo: nil)
+            }
+            .sheet(isPresented: $showingAddCategoryView) {
+                CategoryListView(viewModel: viewModel)
+            }
         }
     }
 
@@ -98,41 +93,19 @@ struct ContentView: View {
         }
         .padding()
     }
-    
-    private var filteredMemos: [LocationMemo] {
+
+    private var filteredMemos: [Memo] {
         if let selectedCategoryId = viewModel.selectedCategoryId {
             return viewModel.memos.filter { $0.categoryId == selectedCategoryId }
         } else {
             return viewModel.memos
         }
     }
-    
+
     private func moveMemo(from source: IndexSet, to destination: Int) {
-        if viewModel.selectedCategoryId == nil {
-            // カテゴリが未選択の場合、viewModel.memos を直接操作
-            viewModel.memos.move(fromOffsets: source, toOffset: destination)
-        } else {
-            // フィルタリングされたメモを操作
-            var filtered = filteredMemos
-            filtered.move(fromOffsets: source, toOffset: destination)
-            
-            // viewModel.memos を更新
-            var newMemos: [LocationMemo] = []
-            var filteredIndex = 0
-            for memo in viewModel.memos {
-                if memo.categoryId == viewModel.selectedCategoryId {
-                    // 選択されたカテゴリのメモは、並べ替え後の順序で追加
-                    newMemos.append(filtered[filteredIndex])
-                    filteredIndex += 1
-                } else {
-                    // その他のメモはそのまま追加
-                    newMemos.append(memo)
-                }
-            }
-            viewModel.memos = newMemos
-            // メモの保存
-            viewModel.saveMemos()
-        }
+        // メモの並べ替え処理
+        viewModel.memos.move(fromOffsets: source, toOffset: destination)
+        viewModel.saveMemos()
     }
 }
 
