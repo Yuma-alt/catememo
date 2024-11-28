@@ -14,7 +14,7 @@ struct AddMemoView: View {
                 Form {
                     Section(header: Text("Memo")) {
                         TextEditor(text: $memoText)
-                            .frame(height: 400)
+                            .frame(minHeight: 200)
                     }
                     
                     Section(header: Text("Category")) {
