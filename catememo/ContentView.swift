@@ -24,6 +24,7 @@ struct ContentView: View {
                                 Text(viewModel.getFirstLine(of: memo.text))
                                     .lineLimit(1)
                                     .truncationMode(.tail)
+                                    .padding(.vertical, 10)
                             }
                         }
                         .onDelete(perform: viewModel.deleteMemo)
