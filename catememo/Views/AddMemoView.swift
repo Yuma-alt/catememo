@@ -61,19 +61,6 @@ struct AddMemoView: View {
         }
         .navigationTitle(memo != nil ? "Edit Memo" : "Add Memo")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button("Cancel") {
-                    presentationMode.wrappedValue.dismiss()
-                }
-            }
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button("Save") {
-                    saveMemo()
-                }
-                .disabled(memoText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-            }
-        }
         .onAppear {
             if let memo = memo {
                 memoText = memo.text
