@@ -7,34 +7,47 @@ struct CategoryListView: View {
 
     var body: some View {
         NavigationView {
-            List {
-                ForEach(viewModel.categories) { category in
-                    HStack {
-                        Text(category.name)
-                        Spacer()
-                        Button(action: {
-                            editingCategory = .edit(category)
-                        }) {
-                            Image(systemName: "pencil")
+            ZStack {
+                List {
+                    ForEach(viewModel.categories) { category in
+                        HStack {
+                            Text(category.name)
+                            Spacer()
+                            Button(action: {
+                                editingCategory = .edit(category)
+                            }) {
+                                Image(systemName: "pencil")
+                            }
+                        }
+                    }
+                    .onDelete(perform: deleteCategory)
+                }
+                .navigationTitle("Edit Categories")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button("Close") {
+                            presentationMode.wrappedValue.dismiss()
                         }
                     }
                 }
-                .onDelete(perform: deleteCategory)
-            }
-            .navigationTitle("Edit Categories")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Close") {
-                        presentationMode.wrappedValue.dismiss()
-                    }
-                }
-                ToolbarItem(placement: .navigationBarTrailing) {
+
+                VStack {
+                    Spacer()
                     Button(action: {
                         editingCategory = .new
                     }) {
                         Image(systemName: "plus")
+                            .resizable()
+                            .frame(width: 24, height: 24)
+                            .padding()
+                            .background(Color.red)
+                            .foregroundColor(.white)
+                            .clipShape(Circle())
+                            .shadow(radius: 4)
                     }
+                    .padding(.trailing, 16)
+                    .padding(.bottom, 16)
                 }
             }
             .sheet(item: $editingCategory) { editingCategory in
