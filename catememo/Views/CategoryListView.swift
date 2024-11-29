@@ -12,6 +12,8 @@ struct CategoryListView: View {
                     ForEach(viewModel.categories) { category in
                         HStack {
                             Text(category.name)
+                                .lineLimit(1)
+                                .padding(.vertical, 10)
                             Spacer()
                             Button(action: {
                                 editingCategory = .edit(category)
