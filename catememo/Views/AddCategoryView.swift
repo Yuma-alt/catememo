@@ -7,10 +7,15 @@ struct AddCategoryView: View {
     var category: Category?
 
     var body: some View {
-        Form {
-            Section(header: Text(category != nil ? "Edit Category" : "New Category")) {
-                TextField("Category Name", text: $categoryName)
+        VStack {
+            Spacer()
+            Form {
+                Section(header: Text(category != nil ? "Edit Category" : "New Category")) {
+                    TextField("Category Name", text: $categoryName)
+                        .textFieldStyle(DefaultTextFieldStyle())
+                }
             }
+            .frame(height: 100)
         }
         .navigationTitle(category != nil ? "Edit Category" : "Add Category")
         .navigationBarTitleDisplayMode(.inline)
@@ -30,19 +35,17 @@ struct AddCategoryView: View {
         .onAppear {
             if let category = category {
                 categoryName = category.name
-            } else {
-                categoryName = ""
             }
         }
     }
 
     private func saveCategory() {
         if var category = category {
-            // カテゴリの更新
+            // Update category
             category.name = categoryName
             viewModel.updateCategory(category)
         } else {
-            // 新規カテゴリの追加
+            // Add new category
             let newCategory = Category(name: categoryName)
             viewModel.addCategory(newCategory)
         }
