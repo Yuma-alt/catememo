@@ -9,6 +9,7 @@ struct AddCategoryView: View {
     var body: some View {
         VStack {
             Spacer()
+
             Form {
                 Section(header: Text(category != nil ? "Edit Category" : "New Category")) {
                     TextField("Category Name", text: $categoryName)
@@ -16,22 +17,36 @@ struct AddCategoryView: View {
                 }
             }
             .frame(height: 100)
-        }
-        .navigationTitle(category != nil ? "Edit Category" : "Add Category")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button("Cancel") {
+
+            HStack {
+                Button(action: {
                     presentationMode.wrappedValue.dismiss()
+                }) {
+                    Text("Cancel")
+                        .frame(minWidth: 0, maxWidth: .infinity)
+                        .padding()
+                        .background(Color.gray.opacity(0.7))
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
                 }
-            }
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button("Save") {
+
+                Button(action: {
                     saveCategory()
+                }) {
+                    Text("Save")
+                        .frame(minWidth: 0, maxWidth: .infinity)
+                        .padding()
+                        .background(categoryName.isEmpty ? Color.gray.opacity(0.7) : Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
                 }
                 .disabled(categoryName.isEmpty)
             }
+            .padding([.leading, .trailing])
+            .padding(.bottom, 20)
         }
+        .navigationTitle(category != nil ? "Edit Category" : "Add Category")
+        .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             if let category = category {
                 categoryName = category.name
